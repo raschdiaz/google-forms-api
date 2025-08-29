@@ -9,7 +9,13 @@
 <body>
     <button id="authorize_button" onclick="handleAuthClick()">Authorize</button>
     <button id="signout_button" onclick="handleSignoutClick()" style="visibility: hidden;">Sign Out</button>
-    <pre id="content" style="white-space: pre-wrap;"></pre>
+    <div id="search" style="visibility: hidden;">
+        Form ID: <input id="form-id" type="text" value="19Y1ko5DdYovUeGib31HDmVO5P1m4CG85t-NzcEdKCzs"/>
+        <button id="search-button" onclick="executeRequests(document.getElementById('form-id').value);">Search</button>
+        </br>
+        </br>
+        <pre id="content" style="white-space: pre-wrap;"></pre>
+    </div>
     <script type="text/javascript">
 
         function loadScriptSync(src, callback) {

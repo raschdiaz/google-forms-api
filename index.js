@@ -1,7 +1,5 @@
-console.log(environment);
-
 const CLIENT_ID = environment.CLIENT_ID;
-const SCOPES = 'https://www.googleapis.com/auth/drive';
+const SCOPES = 'https://www.googleapis.com/auth/forms.body.readonly';
 // Discovery doc URL for APIs used by the quickstart
 const DISCOVERY_DOC = 'https://forms.googleapis.com/$discovery/rest?version=v1';
 
@@ -69,7 +67,6 @@ function loadGoogleTokenClient() {
 function sessionInit() {
     console.log("sessionInit()");
     enableSessionButtons();
-    requestForms();
 }
 
 /**
@@ -98,8 +95,7 @@ function handleSignoutClick() {
         document.getElementById('content').innerText = '';
         document.getElementById('authorize_button').innerText = 'Authorize';
         document.getElementById('signout_button').style.visibility = 'hidden';
-
-        localStorage.removeItem('credentials');
+        document.getElementById('search').style.visibility = 'hidden';
     }
 }
 
@@ -110,8 +106,60 @@ function enableSessionButtons() {
     console.log("enableSessionButtons()")
     document.getElementById('signout_button').style.visibility = 'visible';
     document.getElementById('authorize_button').innerText = 'Refresh';
+    document.getElementById('search').style.visibility = 'visible';
 }
 
-function requestForms() {
-    
+async function requestForm(formId) {
+    console.log("requestForm()", formId)
+    let response;
+    try {
+        console.log(gapi.client.forms.forms)
+        response = await gapi.client.forms.forms.get({ formId: formId });
+        console.log(response)
+        console.log(response.result)
+        return response.result;
+    } catch (error) {
+        handleError(error);
+    }
+}
+
+async function requestFormResponses(formId) {
+    console.log("requestFormResponses()", formId)
+    let response;
+    try {
+        response = await gapi.client.forms.forms.responses.list({ formId: formId });
+        console.log(response)
+        console.log(response.result)
+        return response.result;
+    } catch (error) {
+        handleError(error);
+    }
+}
+
+async function handleError(error) {
+    // It's very helpful to log the entire error object for debugging.
+    console.error("API Error:", error);
+    let errorCode = error.status || error.code
+    switch (errorCode) {
+        case 401:
+            // UNAUTHENTICATED
+            // The token is invalid or expired. Let's try to get a new one.
+            // There is not a way to get and use a "refresh_token" using this logic on javascript https://stackoverflow.com/a/24468307/6774579
+            document.getElementById("authorize_button").click();
+            break;
+        case 404:
+            // NOT FOUND
+            console.error(`Form not found. This can happen if the formId is incorrect or if the authenticated user does not have permission to view the form.`);
+            // You could display a message to the user here.
+            // For example: document.getElementById('content').innerText = 'Form not found. Please check the ID and your permissions.';
+            break;
+        default:
+            // For other errors, re-throwing is often a good default for unhandled cases.
+            throw error;
+    }
+}
+
+function executeRequests(formId) {
+    requestForm(formId);
+    requestFormResponses(formId);
 }
