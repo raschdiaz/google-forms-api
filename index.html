@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Google Forms API</title>
+    <meta charset="utf-8" />
+</head>
+
+<body>
+    <button id="authorize_button" onclick="handleAuthClick()">Authorize</button>
+    <button id="signout_button" onclick="handleSignoutClick()" style="visibility: hidden;">Sign Out</button>
+    <pre id="content" style="white-space: pre-wrap;"></pre>
+    <script type="text/javascript">
+
+        function loadScriptSync(src, callback) {
+            var script = document.createElement('script');
+            script.src = src;
+            script.type = "text/javascript";
+            script.async = true;
+            script.defer = true;
+            script.onload = callback;
+            document.getElementsByTagName('body')[0].appendChild(script);
+        }
+
+        async function loadEnvironment() {
+            const response = await fetch("./environment.json");
+            return await response.json();
+        }
+
+        // Load environment variables and logic synchronously
+        loadEnvironment().then((environment) => {
+            window.environment = environment;
+            loadScriptSync("index.js", function () {
+                loadScriptSync("https://apis.google.com/js/api.js", window.loadGoogleAPI);
+                loadScriptSync("https://accounts.google.com/gsi/client", window.loadGoogleTokenClient);
+            });
+
+        });
+
+    </script>
+</body>
+
+</html>
