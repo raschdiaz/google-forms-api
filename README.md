@@ -35,4 +35,4 @@ Caracteristicas:
 
 :white_check_mark: Actualizar index.html a index.php
 
-:white_square_button: Verify the answers request have pagination.
+:white_square_button: Verificar que el servicio de respuestas tenga paginación.
