@@ -33,6 +33,15 @@
             return await response.json();
         }
 
+        function getQueryParams() {
+            const params = new URLSearchParams(window.location.search);
+            const formId = params.get("formId");
+            const apiUrl = params.get("apiUrl");
+            if (formId && apiUrl) {
+                executeRequests(formId, apiUrl);
+            }
+        }
+
         // Load environment variables and logic synchronously
         loadEnvironment().then((environment) => {
             window.environment = environment;

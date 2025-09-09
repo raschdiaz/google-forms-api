@@ -67,6 +67,7 @@ function loadGoogleTokenClient() {
 function sessionInit() {
     console.log("sessionInit()");
     enableSessionButtons();
+    getQueryParams();
 }
 
 /**
@@ -159,7 +160,65 @@ async function handleError(error) {
     }
 }
 
-function executeRequests(formId) {
-    requestForm(formId);
-    requestFormResponses(formId);
+async function executeRequests(formId, apiUrl) {
+    console.log("executeRequests()", formId, apiUrl);
+    //requestForm(formId);
+    let formResponses = await requestFormResponses(formId);
+    console.log('formResponses', formResponses);
+    formResponses = mapFormResponses(formResponses, formId);
+    console.log('mapFormResponses', formResponses);
+    console.log('JsonToCsv()', JsonToCsv(formResponses));
+    document.getElementById('content').innerText = JsonToCsv(formResponses);
+    const blob = new Blob([JsonToCsv(formResponses)], { type: 'text/csv;charset=utf-8;' });
+    console.log('blob', blob);
+    const formData = new FormData();
+    formData.append('csvFile', blob);
+    fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        },
+        body: formData
+    }).then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    }).then(data => {
+        console.log(data);
+    }).catch(error => {
+        console.error('There was a problem with the fetch operation:', error);
+    });
+}
+
+function JsonToCsv(json) {
+    var fields = Object.keys(json[0]);
+    var replacer = function (key, value) { return value === null ? '' : value };
+    var csv = json.map(function (row) {
+        return fields.map(function (fieldName) {
+            return JSON.stringify(row[fieldName], replacer)
+        }).join(',')
+    })
+    csv.unshift(fields.join(',')) // add header column
+    csv = csv.join('\r\n');
+    return csv;
+}
+
+function mapFormResponses(formResponses, formId) {
+    let mappedResponse = [];
+    formResponses['responses'].map(response => {
+        Object.keys(response['answers']).map((questionId) => {
+            console.log(questionId);
+            console.log(response['answers'][questionId]['textAnswers']['answers'])
+            response['answers'][questionId]['textAnswers']['answers'].map((answer, indexTwo) => {
+                mappedResponse.push({
+                    formId: formId,
+                    responseId: response['responseId'],
+                    lastSubmittedTime: response['lastSubmittedTime'],
+                    ['[questionId][questionIndex][answerValue]']: '[' + questionId + '][' + indexTwo + '][' + answer['value'] + ']',
+                });
+            });
+        });
+    });
+    return mappedResponse;
 }
